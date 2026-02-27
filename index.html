@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retaining Wall Estimator | Perth Retaining Wall Pros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   EMBED MODE SUPPORT
+   ?mode=float  → floating button
+   ?mode=embed  → inline iframe
+   default      → standalone page
+   ═══════════════════════════════════════ */
+
+:root {
+  --stone: #2B2926;
+  --sand: #F4EFE6;
+  --sand-dark: #E8E0D2;
+  --clay: #C2A67D;
+  --clay-dark: #9E8561;
+  --rust: #C0623A;
+  --moss: #4E6E3B;
+  --moss-light: #5F8548;
+  --moss-pale: #E8F0E3;
+  --slate: #555;
+  --white: #FEFCF8;
+  --warn-bg: #FFF8E1;
+  --warn-bdr: #EFA507;
+  --danger-bg: #FFF0F0;
+  --danger-bdr: #D63031;
+  --info-bg: #EDF5E9;
+  --info-bdr: #4E6E3B;
+  --r: 14px;
+  --rs: 8px;
+  --sh: 0 2px 12px rgba(43,41,38,.06);
+  --sh-lg: 0 8px 32px rgba(43,41,38,.1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--sand);color:var(--stone);line-height:1.6;-webkit-font-smoothing:antialiased;}
+body.mode-float{background:transparent;}
+body.mode-embed{background:var(--sand);}
+
+/* ── Float mode: launcher + panel ── */
+.float-launcher{
+  position:fixed;bottom:20px;right:20px;z-index:9999;
+  background:var(--moss);color:#fff;border:none;border-radius:50px;
+  padding:14px 22px;font-family:inherit;font-weight:600;font-size:.9rem;
+  cursor:pointer;box-shadow:0 4px 20px rgba(78,110,59,.35);
+  display:flex;align-items:center;gap:8px;transition:all .2s;
+}
+.float-launcher:hover{background:var(--moss-light);transform:translateY(-2px);box-shadow:0 6px 24px rgba(78,110,59,.4);}
+.float-launcher svg{width:20px;height:20px;}
+.float-launcher.hidden{display:none;}
+
+.float-panel{
+  position:fixed;bottom:0;right:0;z-index:10000;
+  width:100%;max-width:440px;height:92vh;max-height:92vh;
+  background:var(--sand);border-radius:var(--r) var(--r) 0 0;
+  box-shadow:-4px 0 40px rgba(43,41,38,.15);
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.float-panel.open{transform:translateY(0);}
+
+.float-panel-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px;background:var(--stone);color:var(--sand);flex-shrink:0;
+}
+.float-panel-head h3{font-family:'Instrument Serif',serif;font-size:1.05rem;font-weight:400;}
+.float-close{background:none;border:none;color:var(--clay);font-size:1.4rem;cursor:pointer;padding:4px 8px;line-height:1;}
+
+.float-panel-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* ── Main container ── */
+.wc{max-width:680px;margin:0 auto;padding:16px;}
+.float-panel .wc{padding:12px;}
+
+/* ── Header ── */
+.wh{
+  background:var(--stone);color:var(--sand);padding:28px 24px;
+  border-radius:var(--r);margin-bottom:14px;position:relative;overflow:hidden;
+}
+.wh::after{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle,rgba(194,166,125,.12) 0%,transparent 70%);
+}
+.brand{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.73rem;text-transform:uppercase;letter-spacing:1.8px;font-weight:600;color:var(--clay);position:relative;z-index:1;}
+.brand-dot{width:7px;height:7px;background:var(--moss);border-radius:50%;}
+.wh h1{font-family:'Instrument Serif',serif;font-size:1.5rem;font-weight:400;margin-bottom:3px;position:relative;z-index:1;}
+.wh p{font-size:.84rem;opacity:.65;position:relative;z-index:1;}
+.float-panel .wh{display:none;}
+
+/* ── Progress ── */
+.pb{display:flex;gap:4px;margin-bottom:14px;padding:0 2px;}
+.ps{flex:1;height:4px;background:var(--clay);border-radius:2px;opacity:.18;transition:all .3s;}
+.ps.active{opacity:1;background:var(--moss);}
+.ps.done{opacity:.45;background:var(--moss);}
+
+/* ── Step cards ── */
+.sc{background:var(--white);border-radius:var(--r);margin-bottom:8px;box-shadow:var(--sh);border:1.5px solid rgba(194,166,125,.15);transition:all .25s;}
+.sc.active{box-shadow:var(--sh-lg);border-color:var(--moss);}
+.sh{padding:14px 18px;display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;transition:background .15s;}
+.sh:hover{background:rgba(194,166,125,.05);}
+.sn{width:30px;height:30px;background:var(--sand);color:var(--slate);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;transition:all .3s;}
+.sc.active .sn,.sc.done .sn{background:var(--moss);color:#fff;}
+.st{flex:1;font-weight:600;font-size:.92rem;}
+.sv{width:18px;height:18px;transition:transform .3s;color:var(--slate);opacity:.35;}
+.sc.active .sv{transform:rotate(180deg);opacity:.8;}
+.sb{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+.sc.active .sb{max-height:2400px;}
+.sbc{padding:2px 18px 18px;}
+
+/* ── Form fields ── */
+.fg{margin-bottom:14px;}
+.fg label{display:flex;align-items:center;gap:6px;font-weight:500;font-size:.84rem;margin-bottom:5px;color:var(--slate);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+select,input[type="number"],input[type="text"],input[type="email"],input[type="tel"]{
+  width:100%;padding:10px 14px;border:1.5px solid rgba(194,166,125,.35);border-radius:var(--rs);
+  font-family:inherit;font-size:.88rem;background:var(--white);color:var(--stone);transition:border-color .2s;
+}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23555' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;}
+select:focus,input:focus{outline:none;border-color:var(--moss);}
+input::placeholder{color:#aaa;font-weight:400;}
+
+/* ── Material picker ── */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.mc{padding:12px 10px;border:2px solid rgba(194,166,125,.2);border-radius:var(--rs);cursor:pointer;transition:all .2s;text-align:center;}
+.mc:hover{border-color:var(--clay);background:rgba(194,166,125,.04);}
+.mc.sel{border-color:var(--moss);background:var(--moss-pale);}
+.mc .mi{font-size:1.5rem;margin-bottom:2px;}
+.mc .mn{font-weight:600;font-size:.84rem;line-height:1.2;}
+.mc .mp{font-size:.72rem;color:var(--slate);margin-top:1px;}
+.mc .ml{font-size:.68rem;color:var(--moss);font-weight:600;}
+
+/* ── i-button ── */
+.ib{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:var(--info-bdr);color:#fff;border-radius:50%;font-size:.64rem;font-weight:700;font-style:italic;cursor:pointer;border:none;flex-shrink:0;transition:transform .15s;font-family:'Instrument Serif',serif;line-height:1;}
+.ib:hover{transform:scale(1.15);background:var(--moss-light);}
+
+/* ── Tooltip ── */
+.to{display:none;position:fixed;inset:0;background:rgba(43,41,38,.45);z-index:10001;align-items:flex-end;justify-content:center;}
+.to.vis{display:flex;animation:fi .2s;}
+.tp{background:var(--white);border-radius:var(--r) var(--r) 0 0;padding:22px 20px 28px;max-width:680px;width:100%;max-height:60vh;overflow-y:auto;animation:su .3s ease-out;}
+.tp h3{font-family:'Instrument Serif',serif;font-size:1.05rem;margin-bottom:8px;color:var(--moss);font-weight:400;}
+.tp p{font-size:.84rem;color:var(--slate);line-height:1.65;margin-bottom:7px;}
+.tc-btn{display:block;margin:14px auto 0;padding:10px 28px;background:var(--stone);color:var(--sand);border:none;border-radius:var(--rs);font-family:inherit;font-weight:600;font-size:.86rem;cursor:pointer;}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ── Alerts ── */
+.al{padding:11px 14px;border-radius:var(--rs);font-size:.8rem;margin-bottom:9px;display:none;border-left:4px solid;line-height:1.45;}
+.al.vis{display:block;animation:fi .3s;}
+.al.warn{background:var(--warn-bg);border-color:var(--warn-bdr);}
+.al.danger{background:var(--danger-bg);border-color:var(--danger-bdr);}
+.al.info{background:var(--info-bg);border-color:var(--info-bdr);}
+.al strong{font-weight:600;}
+
+/* ── Next button ── */
+.nb{display:block;width:100%;padding:12px;margin-top:14px;background:var(--moss);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-weight:600;font-size:.9rem;cursor:pointer;transition:background .2s;}
+.nb:hover{background:var(--moss-light);}
+.nb:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── Results ── */
+.rs{background:var(--white);border-radius:var(--r);box-shadow:var(--sh-lg);overflow:hidden;border:2px solid var(--moss);}
+.rsh{background:var(--moss);color:#fff;padding:16px 18px;}
+.rsh h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:1.1rem;}
+.rsb{padding:18px;}
+.rt{width:100%;border-collapse:collapse;font-size:.82rem;}
+.rt th{text-align:left;padding:7px 8px;font-weight:600;font-size:.73rem;text-transform:uppercase;letter-spacing:.7px;color:var(--slate);border-bottom:2px solid var(--sand);}
+.rt td{padding:9px 8px;border-bottom:1px solid var(--sand);vertical-align:top;}
+.rt tr:last-child td{border-bottom:none;}
+.rt .qty{font-weight:700;color:var(--moss);text-align:center;}
+.rt .cost{text-align:right;color:var(--slate);white-space:nowrap;}
+
+/* ── Total ── */
+.tr-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;margin-top:6px;border-top:2px solid var(--stone);}
+.tr-label{font-weight:700;font-size:.95rem;}
+.tr-sub{font-size:.73rem;color:var(--slate);opacity:.7;margin-top:2px;}
+.tr-amt{font-family:'Instrument Serif',serif;font-size:1.35rem;color:var(--moss);}
+
+/* ── Comparison ── */
+.cmp{background:var(--sand);border-radius:var(--rs);padding:14px;margin-bottom:14px;}
+.cmp h4{font-size:.76rem;text-transform:uppercase;letter-spacing:1px;color:var(--slate);margin-bottom:10px;}
+.cmp-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.cmp-row:last-child{margin-bottom:0;}
+.cmp-lbl{width:105px;font-size:.78rem;font-weight:500;flex-shrink:0;}
+.cmp-bg{flex:1;height:20px;background:rgba(194,166,125,.12);border-radius:4px;overflow:hidden;}
+.cmp-bar{height:100%;border-radius:4px;transition:width .6s ease;display:flex;align-items:center;padding-left:6px;font-size:.68rem;font-weight:600;color:#fff;}
+.cmp-val{font-size:.75rem;width:100px;text-align:right;flex-shrink:0;color:var(--slate);font-weight:500;}
+
+/* ── Lead form ── */
+.lead-gate{margin-top:16px;}
+.lead-teaser{text-align:center;padding:20px 16px;background:linear-gradient(180deg,var(--sand) 0%,var(--sand-dark) 100%);border-radius:var(--rs);margin-bottom:12px;}
+.lead-teaser h3{font-family:'Instrument Serif',serif;font-size:1.1rem;font-weight:400;margin-bottom:4px;}
+.lead-teaser p{font-size:.82rem;color:var(--slate);margin-bottom:14px;}
+.lead-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;text-align:left;}
+.lead-form .full{grid-column:1/-1;}
+.lead-submit{
+  width:100%;padding:13px;background:var(--moss);color:#fff;border:none;
+  border-radius:var(--rs);font-family:inherit;font-weight:700;font-size:.92rem;
+  cursor:pointer;transition:all .2s;letter-spacing:.3px;
+}
+.lead-submit:hover{background:var(--moss-light);}
+.lead-submit:disabled{opacity:.5;cursor:not-allowed;}
+.lead-note{font-size:.7rem;color:var(--slate);text-align:center;margin-top:6px;opacity:.6;}
+.lead-success{display:none;text-align:center;padding:16px;background:var(--moss-pale);border-radius:var(--rs);}
+.lead-success.vis{display:block;animation:fi .4s;}
+.lead-success h3{color:var(--moss);font-family:'Instrument Serif',serif;font-size:1.1rem;font-weight:400;margin-bottom:4px;}
+.lead-success p{font-size:.84rem;color:var(--slate);}
+
+/* ── Hidden results (shown after lead capture) ── */
+.gated{display:none;}
+.gated.unlocked{display:block;animation:fi .5s;}
+
+/* ── Compliance ── */
+.comp{padding:14px;border-radius:var(--rs);background:var(--sand);margin-top:14px;}
+.comp h4{font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:var(--slate);margin-bottom:8px;}
+
+/* ── CTA ── */
+.cta{background:var(--stone);color:var(--sand);padding:22px 18px;text-align:center;}
+.cta h3{font-family:'Instrument Serif',serif;font-size:1.05rem;font-weight:400;margin-bottom:3px;}
+.cta p{font-size:.8rem;opacity:.6;margin-bottom:14px;}
+.cta-btns{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
+.cb{padding:11px 22px;border-radius:var(--rs);font-family:inherit;font-weight:600;font-size:.86rem;cursor:pointer;text-decoration:none;transition:all .2s;border:none;display:inline-block;text-align:center;}
+.cb.pri{background:var(--moss);color:#fff;}
+.cb.pri:hover{background:var(--moss-light);}
+.cb.sec{background:transparent;color:var(--clay);border:1.5px solid var(--clay);}
+.cb.sec:hover{background:rgba(194,166,125,.08);}
+
+/* ── Footer ── */
+.wf{text-align:center;padding:18px 16px;font-size:.7rem;color:var(--slate);opacity:.4;}
+.wf a{color:var(--moss);text-decoration:none;}
+
+/* ── Mobile ── */
+@media(max-width:480px){
+  .fr,.lead-form{grid-template-columns:1fr;}
+  .lead-form .full{grid-column:1;}
+  .mg{grid-template-columns:1fr 1fr;}
+  .cta-btns{flex-direction:column;}
+  .cb{width:100%;}
+  .cmp-lbl{width:75px;font-size:.72rem;}
+  .cmp-val{width:85px;font-size:.7rem;}
+  .wh h1{font-size:1.3rem;}
+  .float-panel{max-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ FLOAT MODE: Launcher Button ═══ -->
+<button class="float-launcher hidden" id="floatBtn" onclick="toggleFloat()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 13h4M9 17h5"/></svg>
+  Get Instant Estimate
+</button>
+
+<!-- ═══ FLOAT MODE: Slide-up Panel ═══ -->
+<div class="float-panel" id="floatPanel">
+  <div class="float-panel-head">
+    <h3>Retaining Wall Estimator</h3>
+    <button class="float-close" onclick="toggleFloat()">&times;</button>
+  </div>
+  <div class="float-panel-body" id="floatBody"></div>
+</div>
+
+<!-- ═══ MAIN WIDGET ═══ -->
+<div class="wc" id="mainWidget">
+
+  <!-- Header -->
+  <div class="wh">
+    <div class="brand"><span class="brand-dot"></span>Perth Retaining Wall Pros</div>
+    <h1>Retaining Wall Estimator</h1>
+    <p>Instant ballpark for your retaining wall — all materials, tailored for Perth.</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="pb" id="pb">
+    <div class="ps active" data-s="1"></div>
+    <div class="ps" data-s="2"></div>
+    <div class="ps" data-s="3"></div>
+    <div class="ps" data-s="4"></div>
+  </div>
+
+  <!-- ── STEP 1: Material ── -->
+  <div class="sc active" data-s="1">
+    <div class="sh" onclick="go(1)">
+      <div class="sn">1</div><div class="st">Wall Type</div>
+      <svg class="sv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="sb"><div class="sbc">
+      <div class="fg"><label>Choose your material <button class="ib" onclick="tip('materials')">i</button></label></div>
+      <div class="mg" id="matGrid">
+        <div class="mc sel" data-m="timber" onclick="pickMat('timber')"><div class="mi">🪵</div><div class="mn">Timber Sleeper</div><div class="mp">$250–$400 /m²</div><div class="ml">15–25 yrs</div></div>
+        <div class="mc" data-m="limestone" onclick="pickMat('limestone')"><div class="mi">🧱</div><div class="mn">Limestone</div><div class="mp">$400–$600 /m²</div><div class="ml">50+ yrs</div></div>
+        <div class="mc" data-m="concrete_sleeper" onclick="pickMat('concrete_sleeper')"><div class="mi">🏗️</div><div class="mn">Concrete Sleeper</div><div class="mp">$350–$550 /m²</div><div class="ml">50+ yrs</div></div>
+        <div class="mc" data-m="block" onclick="pickMat('block')"><div class="mi">⬜</div><div class="mn">Concrete Block</div><div class="mp">$450–$700 /m²</div><div class="ml">50+ yrs</div></div>
+      </div>
+      <div id="matOpts"></div>
+      <button class="nb" onclick="go(2)">Next → Dimensions</button>
+    </div></div>
+  </div>
+
+  <!-- ── STEP 2: Dimensions ── -->
+  <div class="sc" data-s="2">
+    <div class="sh" onclick="go(2)">
+      <div class="sn">2</div><div class="st">Dimensions</div>
+      <svg class="sv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="sb"><div class="sbc">
+      <div class="fr">
+        <div class="fg"><label>Wall Length (m) <button class="ib" onclick="tip('length')">i</button></label>
+          <input type="number" id="wLen" value="10" min="1" max="50" step="0.5" oninput="calc()"></div>
+        <div class="fg"><label>Wall Height <button class="ib" onclick="tip('height')">i</button></label>
+          <select id="wHt" onchange="calc()">
+            <option value="200">200mm</option><option value="400">400mm</option>
+            <option value="600" selected>600mm</option><option value="800">800mm</option>
+            <option value="1000">1000mm</option><option value="1200">1200mm</option>
+            <option value="1500">1500mm</option>
+          </select></div>
+      </div>
+      <div id="alHt" class="al warn">⚠️ <strong>Walls over 500mm</strong> typically need a building permit in Perth. Budget $200–$500 for permit + $450–$850 for engineering.</div>
+      <div id="alEng" class="al danger">🛑 <strong>Structural engineering required.</strong> Walls 1m+ must be designed by a certified engineer (AS 4678). We handle this for you.</div>
+      <button class="nb" onclick="go(3)">Next → Site Conditions</button>
+    </div></div>
+  </div>
+
+  <!-- ── STEP 3: Site ── -->
+  <div class="sc" data-s="3">
+    <div class="sh" onclick="go(3)">
+      <div class="sn">3</div><div class="st">Site Conditions</div>
+      <svg class="sv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="sb"><div class="sbc">
+      <div class="fr">
+        <div class="fg"><label>Soil Type <button class="ib" onclick="tip('soil')">i</button></label>
+          <select id="soil" onchange="calc()"><option value="sandy" selected>Sandy (Perth typical)</option><option value="clay">Clay</option><option value="rocky">Rocky</option></select></div>
+        <div class="fg"><label>Coastal? <button class="ib" onclick="tip('coastal')">i</button></label>
+          <select id="coast" onchange="calc()"><option value="inland" selected>Inland (10km+)</option><option value="near">Near-coastal (2–10km)</option><option value="coastal">Coastal (&lt;2km)</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Drainage <button class="ib" onclick="tip('drainage')">i</button></label>
+          <select id="drain" onchange="calc()"><option value="yes" selected>Yes (recommended)</option><option value="no">No</option></select></div>
+        <div class="fg"><label>Above wall? <button class="ib" onclick="tip('surcharge')">i</button></label>
+          <select id="sur" onchange="calc()"><option value="none" selected>Garden only</option><option value="path">Footpath</option><option value="drive">Driveway</option><option value="struct">Building</option></select></div>
+      </div>
+      <div id="alCoast" class="al info">ⓘ <strong>Coastal zone:</strong> Use H5 timber / marine-grade fixings. Salt spray accelerates degradation.</div>
+      <div id="alSur" class="al danger">🛑 <strong>Surcharge load detected.</strong> Wall must be engineered regardless of height.</div>
+      <div id="alDrain" class="al warn">⚠️ <strong>Drainage strongly recommended.</strong> Water pressure is the #1 cause of wall failure in Perth.</div>
+      <button class="nb" onclick="go(4)">See My Estimate →</button>
+    </div></div>
+  </div>
+
+  <!-- ── STEP 4: Results + Lead Capture ── -->
+  <div class="sc" data-s="4">
+    <div class="sh" onclick="go(4)">
+      <div class="sn">4</div><div class="st">Your Estimate</div>
+      <svg class="sv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="sb"><div class="sbc" style="padding:0">
+
+      <!-- TEASER: always visible -->
+      <div style="padding:18px">
+        <p style="font-size:.86rem;color:var(--slate);margin-bottom:12px" id="resSummary"></p>
+
+        <!-- Comparison chart (always visible as teaser) -->
+        <div class="cmp" id="cmpSection">
+          <h4>Material comparison for your wall</h4>
+          <div id="cmpBars"></div>
+        </div>
+
+        <!-- Compliance alerts (always visible) -->
+        <div class="comp"><h4>Perth Compliance Notes</h4><div id="compAlerts"></div></div>
+      </div>
+
+      <!-- LEAD CAPTURE GATE -->
+      <div class="lead-gate" id="leadGate">
+        <div class="lead-teaser">
+          <h3>Get your full cost breakdown</h3>
+          <p>See detailed line items, material totals, and get a copy emailed to you.</p>
+          <div class="lead-form">
+            <div class="fg" style="margin:0"><input type="text" id="ldName" placeholder="Your name" required></div>
+            <div class="fg" style="margin:0"><input type="tel" id="ldPhone" placeholder="Phone number" required></div>
+            <div class="fg full" style="margin:0"><input type="email" id="ldEmail" placeholder="Email address" required></div>
+            <div class="fg full" style="margin:0">
+              <select id="ldSuburb">
+                <option value="">Your suburb (optional)</option>
+                <option>Joondalup</option><option>Wanneroo</option><option>Stirling</option>
+                <option>Scarborough</option><option>Fremantle</option><option>Rockingham</option>
+                <option>Mandurah</option><option>Armadale</option><option>Midland</option>
+                <option>Kalamunda</option><option>Mundaring</option><option>Canning</option>
+                <option>Cockburn</option><option>Melville</option><option>South Perth</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <button class="lead-submit" id="ldSubmit" onclick="submitLead()">Show My Full Estimate →</button>
+          <div class="lead-note">No spam. Your details go directly to Perth Retaining Wall Pros for your quote.</div>
+        </div>
+
+        <div class="lead-success" id="leadSuccess">
+          <h3>Estimate unlocked ✓</h3>
+          <p>We've also sent a copy to your email. A team member may follow up to help with your project.</p>
+        </div>
+      </div>
+
+      <!-- GATED: Full results (hidden until lead captured) -->
+      <div class="gated" id="gatedResults">
+        <div class="rs" style="border:none;border-radius:0">
+          <div class="rsh"><h2 id="resTitle">Your Estimate</h2></div>
+          <div class="rsb">
+            <table class="rt"><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Est. Cost</th></tr></thead><tbody id="resTbl"></tbody></table>
+            <div class="tr-row">
+              <div><div class="tr-label">Estimated Installed Total</div><div class="tr-sub">Materials + labour · typical Perth pricing</div></div>
+              <div class="tr-amt" id="resTotal"></div>
+            </div>
+          </div>
+          <div class="cta">
+            <h3>Ready for an exact quote?</h3>
+            <p>This estimate gets you in the ballpark. For a site-assessed price — get in touch.</p>
+            <div class="cta-btns">
+              <a href="tel:0861170925" class="cb pri">📞 (08) 6117 0925</a>
+              <a href="https://www.perthretainingwalls.net.au/contact.html" target="_blank" class="cb sec">Request Free Quote</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+
+  <div class="wf">Estimates are approximate. Always verify prices and check local council requirements.<br>Powered by <a href="https://itabs.ai" target="_blank">iTabs</a> · Built for Perth Retaining Wall Pros</div>
+</div>
+
+<!-- ═══ TOOLTIP ═══ -->
+<div class="to" id="tov" onclick="ticE(event)">
+  <div class="tp" onclick="event.stopPropagation()">
+    <h3 id="tih"></h3><div id="ticc"></div>
+    <button class="tc-btn" onclick="ticE()">Got it</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// EMBED MODE DETECTION
+// ═══════════════════════════════════
+const params = new URLSearchParams(window.location.search);
+const MODE = params.get('mode') || 'standalone';
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (MODE === 'float') {
+    document.body.classList.add('mode-float');
+    document.getElementById('mainWidget').style.display = 'none';
+    document.getElementById('floatBtn').classList.remove('hidden');
+    // Clone widget into float panel
+    const clone = document.getElementById('mainWidget').cloneNode(true);
+    clone.style.display = '';
+    clone.id = 'floatWidget';
+    document.getElementById('floatBody').appendChild(clone);
+  } else if (MODE === 'embed') {
+    document.body.classList.add('mode-embed');
+    document.getElementById('floatBtn').style.display = 'none';
+    document.getElementById('floatPanel').style.display = 'none';
+  } else {
+    document.getElementById('floatBtn').style.display = 'none';
+    document.getElementById('floatPanel').style.display = 'none';
+  }
+  renderMatOpts();
+  calc();
+});
+
+function toggleFloat() {
+  const panel = document.getElementById('floatPanel');
+  const btn = document.getElementById('floatBtn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('hidden');
+}
+
+// ═══════════════════════════════════
+// TIPS / EDUCATION
+// ═══════════════════════════════════
+const TIPS = {
+materials:{t:"Choosing your material",c:`<p><strong>Timber Sleepers</strong> — Most affordable, natural look, 15–25 year lifespan. H4 treated pine minimum. Best for garden walls up to 800mm.</p><p><strong>Limestone Blocks</strong> — Perth's signature material. Gravity wall design, naturally abundant, excellent drainage. 50+ year lifespan.</p><p><strong>Concrete Sleepers</strong> — Pre-engineered panels in steel H-beam posts. Available in timber-look and stone finishes. Virtually maintenance-free, 50+ years.</p><p><strong>Concrete Block (Besser)</strong> — Strongest option. Reinforced with steel, core-filled. Ideal for tall walls, driveways, structural work. Can be rendered. 50+ years.</p>`},
+length:{t:"Measuring your wall",c:`<p>Measure the full run where the wall will go. For corners, measure each straight section and add together.</p><p>Concrete sleepers come in 2m standard panels — planning in 2m increments minimises waste and cost.</p>`},
+height:{t:"Wall height & Perth regulations",c:`<p><strong>Under 500mm:</strong> Generally no permit required.</p><p><strong>Over 500mm:</strong> Building permit likely required. BA01 certified pathway (10–15 business days) is fastest.</p><p><strong>Over 1000mm:</strong> Structural engineering mandatory under AS 4678. Budget $450–$850.</p><p><strong>Tip:</strong> Two tiered 500mm walls with a 1m setback often avoids permits entirely and is structurally superior.</p>`},
+soil:{t:"Perth's sandy soils",c:`<p>Perth's sandy soils have low cohesion and put extra pressure on walls when wet. This means deeper footings (+100–200mm), compacted backfill in 150mm layers, and drainage is critical.</p><p>Your council may require a Perth Sand Penetrometer (PSP) compaction test for walls over 500mm.</p>`},
+coastal:{t:"Coastal exposure",c:`<p>Within 2km of the coast (Fremantle, Cottesloe, Scarborough, Rockingham), salt spray accelerates degradation.</p><p><strong>Use:</strong> H5 treated timber, stainless steel fixings, marine-grade mortar for limestone, and seal all cut timber ends. Budget 10–15% extra for coastal-grade materials.</p>`},
+drainage:{t:"Why drainage is critical",c:`<p><strong>Water pressure is the #1 cause of retaining wall failure.</strong></p><p>Saturated soil pushes outward with enormous force. Perth winter storms can dump 20–40mm in a day.</p><p><strong>Proper drainage:</strong> Ag pipe at base (slots down, 1:100 fall), drainage gravel behind wall, geotextile fabric, outlet to stormwater or soakwell.</p><p><strong>Cost tip:</strong> Buy gravel in bulk for walls over 5m — 5–8× cheaper than bags.</p>`},
+surcharge:{t:"Surcharge loads",c:`<p>Extra weight above the wall (driveways, paths, buildings) means extra pressure. <strong>Any surcharge requires engineering regardless of wall height.</strong></p><p>This is the most common cause of wall failure in Perth subdivisions where retaining is built next to driveways without engineering.</p>`},
+timber_opts:{t:"Timber options",c:`<p><strong>H4 MicroPro</strong> — Best all-rounder. Safe near gardens.</p><p><strong>H4 CCA</strong> — Durable but avoid near veggie gardens.</p><p><strong>H5</strong> — Coastal / constantly wet areas.</p><p><strong>50mm</strong> — Standard for walls ≤600mm.</p><p><strong>75mm</strong> — Heavy duty, 25+ years, resists bowing.</p>`},
+limestone_opts:{t:"Limestone in Perth",c:`<p><strong>Reconstituted</strong> — Manufactured blocks, consistent size, easy to lay. Most common choice.</p><p><strong>Natural cut</strong> — Quarried, irregular texture, premium look.</p><p><strong>1m large format</strong> — Fast installation, needs machinery (~240kg each).</p><p>Limestone walls are gravity structures relying on mass. For walls over 600mm, piers or buttresses are typically added.</p>`},
+cs_opts:{t:"Concrete sleeper walls",c:`<p>Pre-engineered panels slot into galvanised steel H-beam posts. Typically 200mm high × 2000mm long.</p><p><strong>Finishes:</strong> Smooth, woodgrain look, or sandstone texture.</p><p>Steel posts: H-beam for mid-wall joins, C-channel for ends and corners.</p><p>Pre-engineered to certified heights — virtually maintenance-free.</p>`},
+block_opts:{t:"Concrete block walls",c:`<p>Besser blocks (190×190×390mm) reinforced with steel rebar and core-filled with concrete.</p><p>Strongest option — ideal for tall walls, driveways, structural loads. Can be rendered and painted, or left as exposed face block.</p><p>Requires proper strip footing and is typically not a DIY job.</p>`}
+};
+
+function tip(k){const t=TIPS[k];if(!t)return;document.getElementById('tih').textContent=t.t;document.getElementById('ticc').innerHTML=t.c;document.getElementById('tov').classList.add('vis');document.body.style.overflow='hidden';}
+function ticE(e){if(e&&e.target!==document.getElementById('tov')&&!e.target.classList.contains('tc-btn'))return;document.getElementById('tov').classList.remove('vis');document.body.style.overflow='';}
+
+// ═══════════════════════════════════
+// MATERIAL STATE
+// ═══════════════════════════════════
+let mat = 'timber';
+let leadCaptured = false;
+
+function pickMat(m) {
+  mat = m;
+  document.querySelectorAll('.mc').forEach(c => c.classList.toggle('sel', c.dataset.m === m));
+  renderMatOpts();
+  calc();
+}
+
+function renderMatOpts() {
+  const el = document.getElementById('matOpts');
+  if (!el) return;
+  const opts = {
+    timber: `<div class="fr"><div class="fg"><label>Timber <button class="ib" onclick="tip('timber_opts')">i</button></label><select id="tType" onchange="calc()"><option value="micropro" selected>H4 MicroPro</option><option value="cca">H4 CCA</option><option value="hardwood">H4 Hardwood</option><option value="h5">H5 Coastal</option></select></div><div class="fg"><label>Thickness</label><select id="tThick" onchange="calc()"><option value="50" selected>50mm Standard</option><option value="75">75mm Heavy Duty</option></select></div></div>`,
+    limestone: `<div class="fg"><label>Block Type <button class="ib" onclick="tip('limestone_opts')">i</button></label><select id="lsType" onchange="calc()"><option value="recon" selected>Reconstituted</option><option value="natural">Natural Cut</option><option value="large">1m Large Format</option></select></div>`,
+    concrete_sleeper: `<div class="fg"><label>Finish <button class="ib" onclick="tip('cs_opts')">i</button></label><select id="csF" onchange="calc()"><option value="plain" selected>Plain / Smooth</option><option value="wood">Woodgrain Look</option><option value="stone">Sandstone Look</option></select></div>`,
+    block: `<div class="fg"><label>Finish <button class="ib" onclick="tip('block_opts')">i</button></label><select id="bkF" onchange="calc()"><option value="face" selected>Face Block</option><option value="render">Rendered & Painted</option></select></div>`
+  };
+  el.innerHTML = opts[mat] || '';
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function go(n) {
+  document.querySelectorAll('.sc').forEach(c => {
+    const s = +c.dataset.s;
+    c.classList.remove('active');
+    if (s < n) c.classList.add('done'); else c.classList.remove('done');
+  });
+  const t = document.querySelector(`.sc[data-s="${n}"]`);
+  if (t) { t.classList.add('active'); t.classList.remove('done'); setTimeout(() => t.scrollIntoView({behavior:'smooth',block:'start'}), 120); }
+  document.querySelectorAll('.ps').forEach(p => {
+    const s = +p.dataset.s; p.classList.remove('active','done');
+    if (s === n) p.classList.add('active'); else if (s < n) p.classList.add('done');
+  });
+  calc();
+}
+
+// ═══════════════════════════════════
+// LEAD CAPTURE
+// ═══════════════════════════════════
+function submitLead() {
+  const name = document.getElementById('ldName').value.trim();
+  const phone = document.getElementById('ldPhone').value.trim();
+  const email = document.getElementById('ldEmail').value.trim();
+  const suburb = document.getElementById('ldSuburb').value;
+
+  if (!name || !phone || !email) {
+    alert('Please fill in your name, phone, and email to see your full estimate.');
+    return;
+  }
+
+  // In production: POST to endpoint / webhook / email service
+  const leadData = {
+    name, phone, email, suburb,
+    material: mat,
+    wallLength: document.getElementById('wLen').value,
+    wallHeight: document.getElementById('wHt').value,
+    soil: document.getElementById('soil').value,
+    coastal: document.getElementById('coast').value,
+    drainage: document.getElementById('drain').value,
+    surcharge: document.getElementById('sur').value,
+    timestamp: new Date().toISOString()
+  };
+
+  console.log('LEAD CAPTURED:', JSON.stringify(leadData, null, 2));
+
+  // Simulate send
+  const btn = document.getElementById('ldSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  setTimeout(() => {
+    leadCaptured = true;
+    document.getElementById('leadGate').querySelector('.lead-teaser').style.display = 'none';
+    document.getElementById('leadSuccess').classList.add('vis');
+    document.getElementById('gatedResults').classList.add('unlocked');
+    document.getElementById('gatedResults').scrollIntoView({behavior:'smooth',block:'start'});
+  }, 800);
+}
+
+// ═══════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════
+const RATES = {
+  timber:           {min:250, max:400, mPct:.45, label:'Timber Sleeper', color:'#8B6914'},
+  limestone:        {min:400, max:600, mPct:.40, label:'Limestone',      color:'#C2A67D'},
+  concrete_sleeper: {min:350, max:550, mPct:.50, label:'Concrete Sleeper',color:'#4E6E3B'},
+  block:            {min:450, max:700, mPct:.55, label:'Concrete Block',  color:'#555'},
+};
+
+const MAT_ITEMS = {
+  timber:[
+    {n:'Treated pine sleepers',lo:60,hi:100},
+    {n:'Post sleepers (75mm)',lo:25,hi:45},
+    {n:'Quickset concrete (24MPa)',lo:15,hi:25},
+    {n:'Construction screws',lo:5,hi:10},
+  ],
+  limestone:[
+    {n:'Limestone blocks',lo:100,hi:180},
+    {n:'Mortar / adhesive',lo:15,hi:25},
+    {n:'Pier blocks / buttresses',lo:20,hi:40},
+    {n:'Concrete footing',lo:20,hi:35},
+  ],
+  concrete_sleeper:[
+    {n:'Concrete sleeper panels',lo:70,hi:120},
+    {n:'Steel H-beam / C-channel posts',lo:40,hi:65},
+    {n:'Concrete for footings',lo:15,hi:25},
+    {n:'Fixings & accessories',lo:5,hi:10},
+  ],
+  block:[
+    {n:'Besser blocks (190mm)',lo:60,hi:90},
+    {n:'Steel reinforcement',lo:30,hi:50},
+    {n:'Core-fill concrete',lo:25,hi:40},
+    {n:'Strip footing',lo:25,hi:40},
+  ],
+};
+
+function calc() {
+  const L = parseFloat(document.getElementById('wLen')?.value) || 10;
+  const H = parseInt(document.getElementById('wHt')?.value) || 600;
+  const soil = document.getElementById('soil')?.value || 'sandy';
+  const coast = document.getElementById('coast')?.value || 'inland';
+  const drain = document.getElementById('drain')?.value || 'yes';
+  const sur = document.getElementById('sur')?.value || 'none';
+
+  // Alerts
+  const sa = (id,v) => { const e=document.getElementById(id); if(e) e.classList.toggle('vis',v); };
+  sa('alHt', H>500 && H<1000);
+  sa('alEng', H>=1000);
+  sa('alCoast', coast==='coastal');
+  sa('alSur', sur!=='none');
+  sa('alDrain', drain==='no' && H>200);
+
+  const area = L * (H/1000);
+
+  // Adjustments
+  let adj = 1;
+  if (soil==='sandy') adj += 0.05;
+  if (coast==='coastal') adj += 0.10;
+  if (H>=1000) adj += 0.08;
+  if (sur!=='none') adj += 0.10;
+
+  // Material line items
+  let items = [...(MAT_ITEMS[mat]||[])];
+
+  // Block render add-on
+  if (mat==='block') {
+    const bkF = document.getElementById('bkF');
+    if (bkF && bkF.value==='render') {
+      items.push({n:'Render & paint',lo:40,hi:70});
+    }
+  }
+
+  // Concrete sleeper finish premium
+  if (mat==='concrete_sleeper') {
+    const csF = document.getElementById('csF');
+    if (csF && csF.value!=='plain') {
+      items = items.map(i => i.n.includes('panels') ? {...i,lo:i.lo+15,hi:i.hi+25} : i);
+    }
+  }
+
+  // Limestone type premium
+  if (mat==='limestone') {
+    const lsT = document.getElementById('lsType');
+    if (lsT && lsT.value==='natural') {
+      items = items.map(i => i.n.includes('blocks') ? {...i,lo:i.lo+30,hi:i.hi+50} : i);
+    } else if (lsT && lsT.value==='large') {
+      items = items.map(i => i.n.includes('blocks') ? {...i,lo:i.lo+50,hi:i.hi+80} : i);
+    }
+  }
+
+  // Timber type premium
+  if (mat==='timber') {
+    const tT = document.getElementById('tType');
+    const tTh = document.getElementById('tThick');
+    if (tT && tT.value==='hardwood') {
+      items = items.map(i => i.n.includes('sleepers') ? {...i,lo:i.lo+20,hi:i.hi+30} : i);
+    }
+    if (tTh && tTh.value==='75') {
+      items = items.map(i => i.n.includes('sleepers') && !i.n.includes('Post') ? {...i,lo:i.lo+15,hi:i.hi+20} : i);
+    }
+  }
+
+  // Drainage items
+  if (drain==='yes') {
+    items.push({n:'Ag pipe (65mm socked)',lo:8,hi:15});
+    items.push({n:'Drainage gravel (bulk)',lo:12,hi:20});
+    items.push({n:'Geotextile fabric',lo:3,hi:6});
+  }
+
+  // Calculate line items
+  let matMin=0, matMax=0;
+  const rows = items.map(i => {
+    const mn = Math.round(i.lo * area * adj);
+    const mx = Math.round(i.hi * area * adj);
+    matMin += mn; matMax += mx;
+    return {name:i.n, qty:'—', min:mn, max:mx};
+  });
+
+  // Labour
+  const rate = RATES[mat];
+  const labMin = Math.round(rate.min * area * (1-rate.mPct) * adj);
+  const labMax = Math.round(rate.max * area * (1-rate.mPct) * adj);
+  rows.push({name:'Labour & installation', qty:'—', min:labMin, max:labMax});
+
+  let totalMin = matMin + labMin;
+  let totalMax = matMax + labMax;
+
+  // Engineering / permit
+  if (H > 500) {
+    rows.push({name:'Engineering + permit (est.)', qty:'1', min:650, max:1350});
+    totalMin += 650; totalMax += 1350;
+  }
+
+  // Summary
+  const el = id => document.getElementById(id);
+  const sumEl = el('resSummary');
+  if (sumEl) sumEl.innerHTML = `<strong>${L}m × ${H}mm</strong> ${rate.label.toLowerCase()} retaining wall${drain==='yes'?' with drainage':''} — Perth${coast==='coastal'?' (coastal)':''}`;
+
+  const titleEl = el('resTitle');
+  if (titleEl) titleEl.textContent = `${rate.label} Wall Estimate`;
+
+  // Results table
+  const tbl = el('resTbl');
+  if (tbl) tbl.innerHTML = rows.map(r => `<tr><td>${r.name}</td><td class="qty">${r.qty}</td><td class="cost">$${r.min.toLocaleString()}–$${r.max.toLocaleString()}</td></tr>`).join('');
+
+  const totEl = el('resTotal');
+  if (totEl) totEl.textContent = `$${totalMin.toLocaleString()} – $${totalMax.toLocaleString()}`;
+
+  // Comparison bars
+  const maxAll = Math.max(...Object.values(RATES).map(r => r.max * area * adj + (H>500?1350:0)));
+  const barsEl = el('cmpBars');
+  if (barsEl) barsEl.innerHTML = Object.entries(RATES).map(([k,v]) => {
+    const lo = Math.round(v.min * area * adj + (H>500?650:0));
+    const hi = Math.round(v.max * area * adj + (H>500?1350:0));
+    const mid = (lo+hi)/2;
+    const pct = Math.min(100, Math.round((mid/maxAll)*100));
+    const sel = k===mat;
+    return `<div class="cmp-row"><div class="cmp-lbl" style="${sel?'font-weight:700':''}"">${sel?'▸ ':''}${v.label}</div><div class="cmp-bg"><div class="cmp-bar" style="width:${pct}%;background:${v.color}">${sel?'✓':''}</div></div><div class="cmp-val">${sel?'<strong>':''}$${lo.toLocaleString()}–$${hi.toLocaleString()}${sel?'</strong>':''}</div></div>`;
+  }).join('');
+
+  // Compliance alerts
+  const alerts = [];
+  if (H>500) alerts.push(`<div class="al warn vis">⚠️ <strong>Building permit</strong> likely required for ${H}mm wall (most Perth councils). BA01 certified recommended.</div>`);
+  if (H>=1000) alerts.push(`<div class="al danger vis">🛑 <strong>Engineering required</strong> — AS 4678 compliance. We arrange this as part of our quoting process.</div>`);
+  if (sur!=='none') alerts.push(`<div class="al danger vis">🛑 <strong>Surcharge load</strong> — engineering required regardless of height.</div>`);
+  if (coast==='coastal') alerts.push(`<div class="al info vis">ⓘ <strong>Coastal zone</strong> — marine-grade materials factored into estimate.</div>`);
+  if (drain==='no' && H>200) alerts.push(`<div class="al warn vis">⚠️ <strong>No drainage</strong> — strongly recommend adding. #1 failure cause.</div>`);
+  if (soil==='sandy') alerts.push(`<div class="al info vis">ⓘ <strong>Sandy soil</strong> — deeper footings included. Compaction testing may be required.</div>`);
+
+  const compEl = el('compAlerts');
+  if (compEl) compEl.innerHTML = alerts.length ? alerts.join('') : '<p style="font-size:.82rem;color:var(--slate)">✅ No major compliance concerns.</p>';
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+renderMatOpts();
+calc();
+</script>
+</body>
+</html>
